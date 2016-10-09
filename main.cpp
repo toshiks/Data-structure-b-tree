@@ -387,6 +387,12 @@ ParentWithChild findKeyInNode ( Node *childNode, Node *parentNode, int findKey, 
         temp.position = -1;
         return temp;
     }*/
+    if ( positionKey == -1 && childNode->leaf ){
+        ParentWithChild temp;
+        temp.children = temp.parent = NULL;
+        temp.position = -1;
+        return temp;
+    }
 
     if ( positionKey != -1 ){
         //printf("%d %d %d\n", positionNode, parentNode->key[0], childNode->key[0]);
@@ -420,6 +426,11 @@ int positionKeyInNode ( Node *currentNode, int findKey)
 bool deleteKeyFromTree ( Tree *currentTree, int deleteKey )
 {
     ParentWithChild temp = findKeyInTree( currentTree, deleteKey );
+
+    if ( temp.position == -1 ){
+        printf( "%s\n", "Key don't find in Tree" );
+        return 0;
+    }
 
     if ( temp.children->leaf ){
         printf("%s\n", "Child Leaf");
