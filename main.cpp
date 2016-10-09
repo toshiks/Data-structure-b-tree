@@ -314,10 +314,11 @@ bool mergeNodes ( Node *currentNode, int levelTree, int positionFirst, int posit
     Node *secondNode = currentNode->child[ positionSecond ];
 
 
+
     if ( firstNode->counter + secondNode->counter + 1 > 2 * levelTree - 1){
         return false;
     }
-    printf("%s %d\n", "In merge", currentNode->key[ positionFirst ]);
+    //printf("%s %d\n", "In merge", currentNode->key[ positionFirst ]);
 
     firstNode->key[ firstNode->counter ] = currentNode->key[ positionFirst ]; //спускаем предка
     firstNode->counter += 1;
@@ -330,6 +331,11 @@ bool mergeNodes ( Node *currentNode, int levelTree, int positionFirst, int posit
     }
 
     firstNode->counter += secondNode->counter;
+    printf(" %d %s", currentNode->key[ positionFirst ], "It's merge: ");
+    for ( int i = 0; i < currentNode->counter; i++){
+        printf("%d ", currentNode->key[ i ]);
+    }
+    printf("\n");
 
     destroyNode( secondNode );
 
@@ -454,6 +460,7 @@ bool deleteKeyFromTree ( Tree *currentTree, int deleteKey )
                     printf("%s\n", "Merge in Tree 2");
                     //printf("%d\n", temp.position);
                     mergeNodes(temp.parent, currentTree->level, temp.position, temp.position + 1);
+
                     if ( temp.parent->leaf ){
                         int pos = positionKeyInNode( temp.parent, deleteKey );
                         return deleteKeyFromLeaf( temp.parent, currentTree->level, pos );
@@ -481,9 +488,9 @@ bool deleteKeyFromTree ( Tree *currentTree, int deleteKey )
 
 void swap (int *x, int *y)
 {
-    (*x) ^= (*y);
-    (*y) ^= (*x);
-    (*x) ^= (*y);
+    int t = *x;
+    *x = *y;
+    *y = t;
 }
 
 ParentWithChild findLeft ( Node *childNode)
@@ -535,6 +542,7 @@ bool deleteKeyFromNode ( Node *currentNode, int levelTree, int deleteKey, int de
     }
     ParentWithChild Right;
     if ( currentNode->child[ deletePosition ]->leaf ){
+        printf ("%s %d\n", " Right root", deletePosition);
         Right.parent = currentNode;
         Right.children = currentNode->child[ deletePosition ];
         Right.position = deletePosition;
@@ -563,9 +571,17 @@ bool deleteKeyFromNode ( Node *currentNode, int levelTree, int deleteKey, int de
                 return deleteKeyFromNode( Right.children, levelTree, deleteKey, temp );
             }
             else{
-                printf("%s", "Staart merge");
+                printf("%s\n", "Staart merge");
+                for ( int i = 0; i < Right.parent->counter; i++){
+                    printf("%d ", Right.parent->key[ i ]);
+                }
+                printf("\n");
                 swap( &currentNode->key[ deletePosition ], &Right.parent->key[ Right.position ] );
-                printf("%s", "swap merge");
+                printf("%s\n", "swap merge");
+                for ( int i = 0; i < Right.parent->counter; i++){
+                    printf("%d ", Right.parent->key[ i ]);
+                }
+                printf("\n");
                 mergeNodes( Right.parent, levelTree, Right.position, Right.position + 1 );
                 if ( Right.parent->leaf ) {
                     int temp = positionKeyInNode(Right.parent, deleteKey);
@@ -624,6 +640,11 @@ bool deleteKeyFromLeaf ( Node *nodeIsLeaf, int levelTree, int positionKey )
     if ( nodeIsLeaf->counter == levelTree - 1 ) {
         return false;
     }
+    printf("%s", "It's deleteKeyFromNode: ");
+    for ( int i = 0; i < nodeIsLeaf->counter; i++){
+        printf("%d ", nodeIsLeaf->key[ i ]);
+    }
+    printf("\n");
 
     for ( int i = positionKey; i < nodeIsLeaf->counter - 1; i++){
         nodeIsLeaf->key[ i ] = nodeIsLeaf->key[ i + 1 ];
