@@ -431,9 +431,10 @@ bool deleteKeyFromTree ( Tree *currentTree, int deleteKey )
         else {
             if (temp.position == temp.parent->counter) {
                 if ( temp.parent->child[ temp.position - 1 ]->counter > currentTree->level - 1 ){
-                    replaceKeyToLeft( temp.parent, temp.parent->child[ temp.position - 1 ], temp.children, temp.position - 1 );
-                    int pos = positionKeyInNode( temp.parent->child[ temp.position - 1 ], deleteKey );
-                    return deleteKeyFromLeaf( temp.parent->child[ temp.position - 1 ], currentTree->level, pos );
+                    printf("%s\n", "Go to parent left");
+                    replaceKeyToRight( temp.parent, temp.parent->child[ temp.position - 1 ], temp.children, temp.position - 1 );
+                    int pos = positionKeyInNode( temp.parent->child[ temp.position ], deleteKey );
+                    return deleteKeyFromLeaf( temp.parent->child[ temp.position ], currentTree->level, pos );
                 }
                 else{
                     printf("%s\n", "Merge in Tree 1");
@@ -572,16 +573,8 @@ bool deleteKeyFromNode ( Node *currentNode, int levelTree, int deleteKey, int de
             }
             else{
                 printf("%s\n", "Staart merge");
-                for ( int i = 0; i < Right.parent->counter; i++){
-                    printf("%d ", Right.parent->key[ i ]);
-                }
-                printf("\n");
                 swap( &currentNode->key[ deletePosition ], &Right.parent->key[ Right.position ] );
                 printf("%s\n", "swap merge");
-                for ( int i = 0; i < Right.parent->counter; i++){
-                    printf("%d ", Right.parent->key[ i ]);
-                }
-                printf("\n");
                 mergeNodes( Right.parent, levelTree, Right.position, Right.position + 1 );
                 if ( Right.parent->leaf ) {
                     int temp = positionKeyInNode(Right.parent, deleteKey);
@@ -623,7 +616,7 @@ void replaceKeyToRight( Node *parentNode, Node *leftChildNode, Node *rightChildN
         rightChildNode->key[i] = rightChildNode->key[i - 1];
     }
     for (int i = rightChildNode->counter + 1; i > 0; i-- ){
-        rightChildNode->key[i] = rightChildNode->key[i - 1];
+        rightChildNode->child[i] = rightChildNode->child[i - 1];
     }
 
     rightChildNode->counter += 1;
