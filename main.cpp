@@ -125,6 +125,7 @@ void insertKeyIntoTree ( Tree *currentTree, int newKey )
     Node* tempRoot = currentTree->root;
 
     if ( tempRoot->counter == 2 * currentTree->level - 1 ){
+
         Node *newRoot = initNode( currentTree->level );
 
         newRoot->leaf     = false;
@@ -136,6 +137,7 @@ void insertKeyIntoTree ( Tree *currentTree, int newKey )
         insertKeyIntoNode( newRoot, currentTree->level, newKey );
     }
     else{
+
         insertKeyIntoNode( tempRoot, currentTree->level, newKey );
     }
 }
@@ -157,7 +159,9 @@ void insertKeyIntoNode ( Node *currentNode, int levelTree, int newKey )
     int pos = currentNode->counter - 1;
 
     if ( currentNode->leaf ){
+
         while ( ( pos >= 0 ) && ( newKey < currentNode->key[ pos ] ) ){
+
             currentNode->key[ pos + 1 ] = currentNode->key[ pos ];
             pos -= 1;
         }
@@ -167,16 +171,20 @@ void insertKeyIntoNode ( Node *currentNode, int levelTree, int newKey )
         currentNode->counter += 1;
     }
     else{
+
         while ( ( pos >= 0 ) && ( newKey < currentNode->key[ pos ] ) ){
+
             pos -= 1;
         }
 
         pos += 1;
 
         if ( currentNode->child[ pos ]->counter == 2 * levelTree - 1 ){
+
             splitNode( currentNode, levelTree, pos );
 
             if ( newKey > currentNode->key[ pos ] ) {
+
                 pos += 1;
             }
         }
@@ -210,11 +218,14 @@ void splitNode ( Node *currentNode, int levelTree, int position )
     secondPart->counter = levelTree - 1;
 
     for ( int j = 0; j < levelTree - 1; j++ ){
+
         secondPart->key[ j ] = firstPart->key[ j + levelTree ];
     }
 
     if ( !secondPart->leaf ){
+
         for ( int j = 0; j < levelTree; j++ ){
+
             secondPart->child[ j ] = firstPart->child[ j + levelTree ];
         }
     }
@@ -222,12 +233,14 @@ void splitNode ( Node *currentNode, int levelTree, int position )
     firstPart->counter = levelTree - 1;
 
     for ( int j = currentNode->counter + 1; j >= position + 1; j-- ){
+
         currentNode->child[ j + 1 ] = currentNode->child[ j ];
     }
 
     currentNode->child[ position + 1 ] = secondPart;
 
     for ( int j = currentNode->counter; j >= position; j-- ){
+
         currentNode->key[ j + 1 ] = currentNode->key[ j ];
     }
 
@@ -257,14 +270,17 @@ bool mergeNodes ( Node *currentNode, int levelTree, int positionFirst, int posit
      */
 
     if ( positionFirst < 0 || positionFirst > currentNode->counter ) {
+
         return false;
     }
 
     if ( positionSecond < 0 || positionSecond > currentNode->counter ) {
+
         return false;
     }
 
     if ( positionFirst > positionSecond ) {
+
         swap( &positionFirst, &positionSecond );
     }
 
@@ -273,7 +289,8 @@ bool mergeNodes ( Node *currentNode, int levelTree, int positionFirst, int posit
 
 
 
-    if ( firstNode->counter + secondNode->counter + 1 > 2 * levelTree - 1 ){
+    if ( ( firstNode->counter + secondNode->counter + 1 ) > ( 2 * levelTree - 1 ) ){
+
         return false;
     }
 
@@ -281,9 +298,11 @@ bool mergeNodes ( Node *currentNode, int levelTree, int positionFirst, int posit
     firstNode->counter += 1;
 
     for ( int i = 0; i < secondNode->counter; i++ ){
+
         firstNode->key[ i + firstNode->counter ] = secondNode->key[ i ];
     }
     for ( int i = 0; i <= secondNode->counter; i++ ){
+
         firstNode->child[ i + firstNode->counter ] = secondNode->child[ i ];
     }
 
@@ -293,25 +312,31 @@ bool mergeNodes ( Node *currentNode, int levelTree, int positionFirst, int posit
 
 
     if ( currentNode->counter != 1 ){
+
         for ( int i = positionFirst; i < currentNode->counter - 1; i++ ) {
+
             currentNode->key[ i ] = currentNode->key[ i + 1 ];
         }
 
         for ( int i = positionFirst + 1; i < currentNode->counter; i++ ) {
+
             currentNode->child[ i ] = currentNode->child[ i + 1 ];
         }
 
         currentNode->counter -= 1;
     }
     else{
+
         currentNode->counter = firstNode->counter;
         currentNode->leaf = firstNode->leaf;
 
         for ( int i = 0; i < currentNode->counter; i++ ) {
+
             currentNode->key[ i ] = firstNode->key[ i ];
         }
 
         for ( int i = 0; i <= currentNode->counter; i++ ) {
+
             currentNode->child[ i ] = firstNode->child[ i ];
         }
 
@@ -350,6 +375,7 @@ ParentWithChild findKeyInNode ( Node *childNode, Node *parentNode, int findKey, 
     int positionKey = positionKeyInNode( childNode, findKey );
 
     if ( positionKey == -1 && childNode->leaf ){
+
         ParentWithChild temp;
 
         temp.children = NULL;
@@ -360,6 +386,7 @@ ParentWithChild findKeyInNode ( Node *childNode, Node *parentNode, int findKey, 
     }
 
     if ( positionKey != -1 ){
+
         ParentWithChild temp;
 
         temp.children = childNode;
@@ -370,7 +397,9 @@ ParentWithChild findKeyInNode ( Node *childNode, Node *parentNode, int findKey, 
     }
 
     for ( int i = 1; i <= childNode->counter; i++ ){
+
         if ( childNode->key[ i - 1 ] > findKey ){
+
             return findKeyInNode( childNode->child[ i - 1 ], childNode, findKey, i - 1 );
         }
     }
@@ -387,7 +416,9 @@ int positionKeyInNode ( Node *currentNode, int findKey )
      */
 
     for ( int i = 0; i < currentNode->counter; i++ ) {
+
         if ( currentNode->key[ i ] == findKey ) {
+
             return i;
         }
     }
@@ -405,40 +436,41 @@ bool deleteKeyFromTree ( Tree *currentTree, int deleteKey )
     }
 
     if ( temp.children->leaf ){
-        printf("%s\n", "Child Leaf");
         if ( temp.children->counter > currentTree->level - 1 ) {
-            printf("%s\n", "OK");
-            int pos = positionKeyInNode(temp.children, deleteKey);
-            return deleteKeyFromLeaf(temp.children, currentTree->level, pos);
+            int pos = positionKeyInNode( temp.children, deleteKey );
+
+            return deleteKeyFromLeaf( temp.children, currentTree->level, pos );
         }
         else {
-            if (temp.position == temp.parent->counter) {
+            if ( temp.position == temp.parent->counter ) {
                 if ( temp.parent->child[ temp.position - 1 ]->counter > currentTree->level - 1 ){
-                    printf("%s\n", "Go to parent left");
                     replaceKeyToRight( temp.parent, temp.parent->child[ temp.position - 1 ], temp.children, temp.position - 1 );
+
                     int pos = positionKeyInNode( temp.parent->child[ temp.position ], deleteKey );
+
                     return deleteKeyFromLeaf( temp.parent->child[ temp.position ], currentTree->level, pos );
                 }
                 else{
-                    printf("%s\n", "Merge in Tree 1");
-                    //printf("%d\n", temp.position);
                     mergeNodes( temp.parent, currentTree->level, temp.position, temp.position - 1 );
-                    //write( currentTree );
+
                     if ( temp.parent->leaf ){
                         int pos = positionKeyInNode( temp.parent, deleteKey );
+
                         return deleteKeyFromLeaf( temp.parent, currentTree->level, pos );
                     }
                     else {
                         int pos = positionKeyInNode(temp.parent->child[temp.position - 1], deleteKey);
-                        printf("%s\n", "Ok 1");
+
                         return deleteKeyFromLeaf(temp.parent->child[temp.position - 1], currentTree->level, pos);
                     }
                 }
 
             } else {
-                if (temp.parent->child[temp.position + 1]->counter > currentTree->level - 1) {
-                    replaceKeyToLeft(temp.parent, temp.children, temp.parent->child[temp.position + 1], temp.position);
+                if ( temp.parent->child[ temp.position + 1 ]->counter > currentTree->level - 1 ) {
+                    replaceKeyToLeft( temp.parent, temp.children, temp.parent->child[ temp.position + 1 ], temp.position);
+
                     int pos = positionKeyInNode(temp.children, deleteKey);
+
                     return deleteKeyFromLeaf(temp.children, currentTree->level, pos);
                 } else {
                     printf("%s\n", "Merge in Tree 2");
