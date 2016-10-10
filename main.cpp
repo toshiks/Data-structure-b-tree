@@ -41,7 +41,7 @@ ParentWithChild findRight     ( Node * );                                       
 void replaceKeyToLeft         ( Node *, Node *, Node *, int position);                                 //перемещения ключа с права налево
 void replaceKeyToRight        ( Node *, Node *, Node *, int position);                                 //перемещения ключа с лева направо
 bool deleteKeyFromNode        ( Node *, int levelTree, int deleteKey, int deletePosition );            //удаление ключа из узла
-
+void destroyTree              ( Node * );                                                              //удаление дерева
 
 
 int main ( int argc, char *argv[] )
@@ -59,13 +59,14 @@ int main ( int argc, char *argv[] )
         write( myTree );
         printf("\n\n");
     }
-    while ( x != 0 ) {
+    /*while ( x != 0 ) {
         scanf("%d", &x);
         deleteKeyFromTree(myTree, x);
         write(myTree);
-    }
+    }*/
 
     fclose( in );
+    destroyTree( myTree->root );
     system("pause>>null");
     return 0;
 }
@@ -328,7 +329,7 @@ bool mergeNodes ( Node *currentNode, int levelTree, int positionFirst, int posit
     else{
 
         currentNode->counter = firstNode->counter;
-        currentNode->leaf = firstNode->leaf;
+        currentNode->leaf    = firstNode->leaf;
 
         for ( int i = 0; i < currentNode->counter; i++ ) {
 
@@ -662,7 +663,7 @@ bool deleteKeyFromNode ( Node *currentNode, int levelTree, int deleteKey, int de
     ParentWithChild Left;
     if ( currentNode->child[ deletePosition + 1 ]->leaf){
 
-        Left.parent = currentNode;
+        Left.parent   = currentNode;
         Left.children = currentNode->child[ deletePosition + 1 ];
         Left.position = deletePosition + 1;
     }
@@ -674,7 +675,7 @@ bool deleteKeyFromNode ( Node *currentNode, int levelTree, int deleteKey, int de
     ParentWithChild Right;
     if ( currentNode->child[ deletePosition ]->leaf ){
 
-        Right.parent = currentNode;
+        Right.parent   = currentNode;
         Right.children = currentNode->child[ deletePosition ];
         Right.position = deletePosition;
     }
@@ -731,35 +732,61 @@ bool deleteKeyFromNode ( Node *currentNode, int levelTree, int deleteKey, int de
 
 void replaceKeyToLeft( Node *parentNode, Node *leftChildNode, Node *rightChildNode, int position)
 {
+    /*
+     * Функция перебрасывания ключа с правого ребенка в левого ребенка
+     *
+     * parentNode     - родителей двух детей
+     * leftChildNode  - левый ребенок
+     * rightChildNode - правый ребенок
+     * position       - позиция ключа, относительно которого рассматриваются
+     *                  дети в предке
+     */
+
     leftChildNode->counter += 1;
+
     leftChildNode->key[ leftChildNode->counter - 1 ] = parentNode->key[ position ];
-    leftChildNode->child[ leftChildNode->counter ] =  rightChildNode->child[ 0 ];
+    leftChildNode->child[ leftChildNode->counter ]   =  rightChildNode->child[ 0 ];
 
     parentNode->key[ position ] = rightChildNode->key[ 0 ];
 
     for ( int i = 0; i <= rightChildNode->counter; i++ ){
+
         rightChildNode->child[ i ] = rightChildNode->child[ i + 1 ];
     }
 
     for ( int i = 0; i < rightChildNode->counter; i++ ){
+
         rightChildNode->key[ i ] = rightChildNode->key[ i + 1 ];
     }
 
     rightChildNode->counter -= 1;
-
 }
 
 void replaceKeyToRight( Node *parentNode, Node *leftChildNode, Node *rightChildNode, int position)
 {
-    for (int i = rightChildNode->counter; i > 0; i-- ){
-        rightChildNode->key[i] = rightChildNode->key[i - 1];
+    /*
+     * Функция перебрасывания ключа с левого ребенка в правого ребенка
+     *
+     * parentNode     - родителей двух детей
+     * leftChildNode  - левый ребенок
+     * rightChildNode - правый ребенок
+     * position       - позиция ключа, относительно которого рассматриваются
+     *                  дети в предке
+     */
+
+    for ( int i = rightChildNode->counter; i > 0; i-- ){
+
+        rightChildNode->key[ i ] = rightChildNode->key[i - 1];
     }
-    for (int i = rightChildNode->counter + 1; i > 0; i-- ){
-        rightChildNode->child[i] = rightChildNode->child[i - 1];
+
+    for ( int i = rightChildNode->counter + 1; i > 0; i-- ){
+
+        rightChildNode->child[ i ] = rightChildNode->child[i - 1];
     }
 
     rightChildNode->counter += 1;
-    rightChildNode->key[ 0 ] = parentNode->key[ position ];
+
+    rightChildNode->key[ 0 ]   = parentNode->key[ position ];
     rightChildNode->child[ 0 ] = leftChildNode->child[ leftChildNode->counter ];
 
     parentNode->key[ position ] = leftChildNode->key[ leftChildNode->counter - 1 ];
@@ -769,20 +796,26 @@ void replaceKeyToRight( Node *parentNode, Node *leftChildNode, Node *rightChildN
 
 bool deleteKeyFromLeaf ( Node *nodeIsLeaf, int levelTree, int positionKey )
 {
+    /*
+     * Функция удаления ключа из листа
+     *
+     * nodeIsLeaf  - рассматриваемый лист
+     * levelTree   - основная характеристика B-дерева
+     * positionKey - позиция ключа в листе
+     */
+
     if ( nodeIsLeaf->counter == levelTree - 1 ) {
+
         return false;
     }
-    printf("%s", "It's deleteKeyFromNode: ");
-    for ( int i = 0; i < nodeIsLeaf->counter; i++){
-        printf("%d ", nodeIsLeaf->key[ i ]);
-    }
-    printf("\n");
 
     for ( int i = positionKey; i < nodeIsLeaf->counter - 1; i++){
+
         nodeIsLeaf->key[ i ] = nodeIsLeaf->key[ i + 1 ];
     }
 
     for ( int i = positionKey; i < nodeIsLeaf->counter; i++){
+
         nodeIsLeaf->child[ i ] = nodeIsLeaf->child[ i + 1 ];
     }
 
@@ -816,6 +849,25 @@ void destroyNode ( Node *currentNode )
     free( currentNode->key );
     free( currentNode->child );
     free( currentNode );
+}
+
+void destroyTree ( Node *deleteNode) {
+    /*
+     * Рекурсивное удаление дерева
+     */
+    if (deleteNode->leaf) {
+
+        destroyNode(deleteNode);
+    }
+    else {
+
+        for (int i = 0; i <= deleteNode->counter; i++) {
+
+            destroyTree(deleteNode->child[i]);
+        }
+    }
+
+    destroyNode(deleteNode);
 }
 
 void write( Tree *temp )
