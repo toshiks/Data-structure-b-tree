@@ -132,6 +132,7 @@ void insertKeyIntoTree ( Tree *currentTree, int newKey )
         newRoot->child[0] = tempRoot;
 
         splitNode( newRoot, currentTree->level, 0 );
+
         insertKeyIntoNode( newRoot, currentTree->level, newKey );
     }
     else{
@@ -152,10 +153,11 @@ void insertKeyIntoNode ( Node *currentNode, int levelTree, int newKey )
      * levelTree   - основная характеристика B-дерева
      * newKey      - новый ключ
      */
+
     int pos = currentNode->counter - 1;
 
     if ( currentNode->leaf ){
-        while ( pos >= 0 && newKey < currentNode->key[ pos ] ){
+        while ( ( pos >= 0 ) && ( newKey < currentNode->key[ pos ] ) ){
             currentNode->key[ pos + 1 ] = currentNode->key[ pos ];
             pos -= 1;
         }
@@ -165,7 +167,7 @@ void insertKeyIntoNode ( Node *currentNode, int levelTree, int newKey )
         currentNode->counter += 1;
     }
     else{
-        while ( pos >= 0 && newKey < currentNode->key[ pos ] ){
+        while ( ( pos >= 0 ) && ( newKey < currentNode->key[ pos ] ) ){
             pos -= 1;
         }
 
@@ -174,8 +176,9 @@ void insertKeyIntoNode ( Node *currentNode, int levelTree, int newKey )
         if ( currentNode->child[ pos ]->counter == 2 * levelTree - 1 ){
             splitNode( currentNode, levelTree, pos );
 
-            if ( newKey > currentNode->key[ pos ] )
+            if ( newKey > currentNode->key[ pos ] ) {
                 pos += 1;
+            }
         }
 
         insertKeyIntoNode( currentNode->child[ pos ], levelTree, newKey );
@@ -211,7 +214,7 @@ void splitNode ( Node *currentNode, int levelTree, int position )
     }
 
     if ( !secondPart->leaf ){
-        for ( int j = 0; j < levelTree; j++){
+        for ( int j = 0; j < levelTree; j++ ){
             secondPart->child[ j ] = firstPart->child[ j + levelTree ];
         }
     }
@@ -270,7 +273,7 @@ bool mergeNodes ( Node *currentNode, int levelTree, int positionFirst, int posit
 
 
 
-    if ( firstNode->counter + secondNode->counter + 1 > 2 * levelTree - 1){
+    if ( firstNode->counter + secondNode->counter + 1 > 2 * levelTree - 1 ){
         return false;
     }
 
@@ -290,29 +293,28 @@ bool mergeNodes ( Node *currentNode, int levelTree, int positionFirst, int posit
 
 
     if ( currentNode->counter != 1 ){
-        printf("%s\n", "Merge 1 ");
-
-        for (int i = positionFirst; i < currentNode->counter - 1; i++) {
-            currentNode->key[i] = currentNode->key[i + 1];
+        for ( int i = positionFirst; i < currentNode->counter - 1; i++ ) {
+            currentNode->key[ i ] = currentNode->key[ i + 1 ];
         }
 
-        for (int i = positionFirst + 1; i < currentNode->counter; i++) {
-            currentNode->child[i] = currentNode->child[i + 1];
+        for ( int i = positionFirst + 1; i < currentNode->counter; i++ ) {
+            currentNode->child[ i ] = currentNode->child[ i + 1 ];
         }
-        printf("%s\n", "OK");
+
         currentNode->counter -= 1;
     }
     else{
-        printf("%s\n", "Merge 2 ");
         currentNode->counter = firstNode->counter;
         currentNode->leaf = firstNode->leaf;
-        for (int i = 0; i < currentNode->counter; i++) {
+
+        for ( int i = 0; i < currentNode->counter; i++ ) {
             currentNode->key[ i ] = firstNode->key[ i ];
         }
 
-        for (int i = 0; i <= currentNode->counter; i++) {
+        for ( int i = 0; i <= currentNode->counter; i++ ) {
             currentNode->child[ i ] = firstNode->child[ i ];
         }
+
         destroyNode( firstNode );
     }
 
@@ -321,29 +323,51 @@ bool mergeNodes ( Node *currentNode, int levelTree, int positionFirst, int posit
 
 ParentWithChild findKeyInTree ( Tree *currentTree, int findKey )
 {
+    /*
+     * Поиск ключа в дереве
+     * Функция - связка между деревом и его узлами
+     *
+     * currentTree - рассматриваемое дерево
+     * findKey     - искомый ключ
+     */
+
     return findKeyInNode ( currentTree->root, currentTree->root, findKey, 0 );
 }
 
 ParentWithChild findKeyInNode ( Node *childNode, Node *parentNode, int findKey, int positionNode )
 {
+    /*
+     * Поиск ключа в узле
+     * Методом рекурсивного спуска ищем нужный нам ключ
+     * В случае отсутствия ключа в дереве возвращается нулевая структура
+     *
+     * childNode    - ребенок, в котором ищется findKey
+     * parentNode   - родитель childNode
+     * findKey      - искомый ключ
+     * positionNode - позиция ребенка в родителе
+     */
+
     int positionKey = positionKeyInNode( childNode, findKey );
 
     if ( positionKey == -1 && childNode->leaf ){
         ParentWithChild temp;
-        temp.children = temp.parent = NULL;
+
+        temp.children = NULL;
+        temp.parent   = NULL;
         temp.position = -1;
+
         return temp;
     }
 
     if ( positionKey != -1 ){
         ParentWithChild temp;
+
         temp.children = childNode;
-        temp.parent = parentNode;
+        temp.parent   = parentNode;
         temp.position = positionNode;
+
         return temp;
     }
-
-
 
     for ( int i = 1; i <= childNode->counter; i++ ){
         if ( childNode->key[ i - 1 ] > findKey ){
@@ -354,14 +378,20 @@ ParentWithChild findKeyInNode ( Node *childNode, Node *parentNode, int findKey, 
     return findKeyInNode( childNode->child[ childNode->counter ], childNode, findKey, childNode->counter );
 }
 
-int positionKeyInNode ( Node *currentNode, int findKey)
+int positionKeyInNode ( Node *currentNode, int findKey )
 {
-    //printf("%s\n", "4");
-    for ( int i = 0; i < currentNode->counter; i++) {
-        if (currentNode->key[ i ] == findKey) {
+    /*
+     * Поиск позиции ключа в узле
+     * В случае удачи возвращает индекс ключа в узле
+     * В случае не удачи возвращается -1
+     */
+
+    for ( int i = 0; i < currentNode->counter; i++ ) {
+        if ( currentNode->key[ i ] == findKey ) {
             return i;
         }
     }
+
     return -1;
 }
 
