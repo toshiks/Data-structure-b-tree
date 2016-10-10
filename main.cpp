@@ -59,7 +59,7 @@ int main ( int argc, char *argv[] )
         write( myTree );
         printf("\n\n");
     }
-    while ( !myTree->root->leaf ) {
+    while ( x != 0 ) {
         scanf("%d", &x);
         deleteKeyFromTree(myTree, x);
         write(myTree);
@@ -428,22 +428,61 @@ int positionKeyInNode ( Node *currentNode, int findKey )
 
 bool deleteKeyFromTree ( Tree *currentTree, int deleteKey )
 {
+    /*
+     * Удаление ключа в дереве.
+     * Сначала ищем ключ в дереве.
+     * Если ключ не наден в дереве, выводим на экран сообщение об отсутствии.
+     * Если найденный ключ находится в корне и корень - лист, то просто
+     * удаляем ключ в корне.
+     * Если найденный ключ находится в листе, то возможно несколько вариантов:
+     *     1. В листе больше, чем t - 1 элементов, то просто удаляем ключ в
+     *        листе
+     *     2. Если в листе ровно t - 1 элементов и он находится с правого края, то:
+     *           а) Если в левом соседе больше ( t - 1 ) элементов, то
+     *              переносим крайний ключ из левого соседа в лист,
+     *              и удаляем ключ в данном листе
+     *           б) Если в левом соседе ровно ( t - 1 ) элементов, то
+     *              сливаем левого соседа и рассматриваемый лист
+     *     3. Если в листе ровно t - 1 элементов:
+     *           а) Если в правом соседе больше ( t - 1 ) элементов, то
+     *              переносим крайний ключ из правого соседа в лист,
+     *              и удаляем ключ в данном листе
+     *           б) Если в правом соседе ровно ( t - 1 ) элементов, то
+     *              сливаем правого соседа и рассматриваемый лист
+     * Если найденный ключ находится в узле, то переходим в функцию удаления ключа
+     * из узла
+     */
+
     ParentWithChild temp = findKeyInTree( currentTree, deleteKey );
 
     if ( temp.position == -1 ){
+
         printf( "%s\n", "Key don't find in Tree" );
+
         return 0;
     }
 
+    if ( temp.children == currentTree->root && temp.children->leaf ){
+
+        int pos = positionKeyInNode( temp.children, deleteKey );
+
+        return deleteKeyFromLeaf( temp.children, currentTree->level, pos );
+    }
+
     if ( temp.children->leaf ){
+
         if ( temp.children->counter > currentTree->level - 1 ) {
+
             int pos = positionKeyInNode( temp.children, deleteKey );
 
             return deleteKeyFromLeaf( temp.children, currentTree->level, pos );
         }
         else {
+
             if ( temp.position == temp.parent->counter ) {
+
                 if ( temp.parent->child[ temp.position - 1 ]->counter > currentTree->level - 1 ){
+
                     replaceKeyToRight( temp.parent, temp.parent->child[ temp.position - 1 ], temp.children, temp.position - 1 );
 
                     int pos = positionKeyInNode( temp.parent->child[ temp.position ], deleteKey );
@@ -451,55 +490,60 @@ bool deleteKeyFromTree ( Tree *currentTree, int deleteKey )
                     return deleteKeyFromLeaf( temp.parent->child[ temp.position ], currentTree->level, pos );
                 }
                 else{
+
                     mergeNodes( temp.parent, currentTree->level, temp.position, temp.position - 1 );
 
                     if ( temp.parent->leaf ){
+
                         int pos = positionKeyInNode( temp.parent, deleteKey );
 
                         return deleteKeyFromLeaf( temp.parent, currentTree->level, pos );
                     }
                     else {
+
                         int pos = positionKeyInNode(temp.parent->child[temp.position - 1], deleteKey);
 
                         return deleteKeyFromLeaf(temp.parent->child[temp.position - 1], currentTree->level, pos);
                     }
                 }
 
-            } else {
+            }
+            else {
+
                 if ( temp.parent->child[ temp.position + 1 ]->counter > currentTree->level - 1 ) {
+
                     replaceKeyToLeft( temp.parent, temp.children, temp.parent->child[ temp.position + 1 ], temp.position);
 
                     int pos = positionKeyInNode(temp.children, deleteKey);
 
                     return deleteKeyFromLeaf(temp.children, currentTree->level, pos);
-                } else {
-                    printf("%s\n", "Merge in Tree 2");
-                    //printf("%d\n", temp.position);
+                }
+                else {
+
                     mergeNodes(temp.parent, currentTree->level, temp.position, temp.position + 1);
 
                     if ( temp.parent->leaf ){
+
                         int pos = positionKeyInNode( temp.parent, deleteKey );
+
                         return deleteKeyFromLeaf( temp.parent, currentTree->level, pos );
                     }
                     else {
+
                         int pos = positionKeyInNode(temp.children, deleteKey);
+
                         return deleteKeyFromLeaf(temp.children, currentTree->level, pos);
                     }
                 }
             }
         }
     }
+    else {
 
-    if ( !temp.children->leaf ) {
         int pos = positionKeyInNode(temp.children, deleteKey);
-        //printf("%s\n", "2341234");
-        //temp.children->key[pos] = MAX_IN;
+
         deleteKeyFromNode( temp.children, currentTree->level, deleteKey , pos );
     }
-    if ( temp.children == NULL ){
-        printf("%s\n", "Idi nafig");
-    }
-
 }
 
 void swap (int *x, int *y)
