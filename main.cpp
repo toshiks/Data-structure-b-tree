@@ -430,7 +430,8 @@ bool deleteKeyFromTree ( Tree *currentTree, int deleteKey )
 {
     /*
      * Удаление ключа в дереве.
-     * Сначала ищем ключ в дереве.
+     * Сначала проверяем, не пусто ли дерево.
+     * Ищем ключ в дереве.
      * Если ключ не наден в дереве, выводим на экран сообщение об отсутствии.
      * Если найденный ключ находится в корне и корень - лист, то просто
      * удаляем ключ в корне.
@@ -453,6 +454,13 @@ bool deleteKeyFromTree ( Tree *currentTree, int deleteKey )
      * из узла
      */
 
+    if ( currentTree == NULL || currentTree->root->counter == 0 ){
+
+        printf("%s\n", "Tree is empty.");
+
+        return 0;
+    }
+
     ParentWithChild temp = findKeyInTree( currentTree, deleteKey );
 
     if ( temp.position == -1 ){
@@ -466,7 +474,18 @@ bool deleteKeyFromTree ( Tree *currentTree, int deleteKey )
 
         int pos = positionKeyInNode( temp.children, deleteKey );
 
-        return deleteKeyFromLeaf( temp.children, currentTree->level, pos );
+        for ( int i = pos; i < temp.children->counter - 1; i++ ){
+            temp.children->key[ i ] = temp.children->key[ i + 1 ];
+        }
+
+
+        for ( int i = pos; i <= temp.children->counter - 1; i++ ){
+            temp.children->child[ i ] = temp.children->child[ i + 1 ];
+        }
+
+        temp.children->counter -= 1;
+
+        return 1;
     }
 
     if ( temp.children->leaf ){
