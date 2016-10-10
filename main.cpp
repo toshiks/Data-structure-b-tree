@@ -561,12 +561,16 @@ bool deleteKeyFromTree ( Tree *currentTree, int deleteKey )
 
         int pos = positionKeyInNode(temp.children, deleteKey);
 
-        deleteKeyFromNode( temp.children, currentTree->level, deleteKey , pos );
+        return deleteKeyFromNode( temp.children, currentTree->level, deleteKey , pos );
     }
 }
 
 void swap (int *x, int *y)
 {
+    /*
+     * Функиция, меняющая местами два числа
+     */
+
     int t = *x;
     *x = *y;
     *y = t;
@@ -574,96 +578,153 @@ void swap (int *x, int *y)
 
 ParentWithChild findLeft ( Node *childNode)
 {
+    /*
+     * Функция рекурсивного спуска влево
+     * Необходима для поиска наименьшего от заданного
+     * в родителе числа в правом ребенке
+     *
+     * childNode - рассматриваемый в текущее время узел
+     */
+
     if ( childNode->child[ 0 ]->leaf ){
+
         ParentWithChild temp;
-        temp.parent = childNode;
+
+        temp.parent   = childNode;
         temp.children = childNode->child[ 0 ];
         temp.position = 0;
+
         return temp;
     }
-    return findLeft( childNode->child[ 0 ] );
 
+    return findLeft( childNode->child[ 0 ] );
 }
 
 ParentWithChild findRight ( Node *childNode)
 {
+    /*
+    * Функция рекурсивного спуска вправо
+    * Необходима для поиска наименьшего от заданного
+    * в родителе числа в левом ребенке
+    *
+    * childNode - рассматриваемый в текущее время узел
+    */
+
     if ( childNode->child[ childNode->counter ]->leaf ){
+
         ParentWithChild temp;
+
         temp.parent = childNode;
         temp.children = childNode->child[ childNode->counter ];
         temp.position = childNode->counter;
+
         return temp;
     }
+
     return findRight( childNode->child[ childNode->counter ] );
 }
 
 bool deleteKeyFromNode ( Node *currentNode, int levelTree, int deleteKey, int deletePosition ){
-    //currentNode - узел, в котором производится работа
-    //deleteNode - узел, в которм находится удаляемый объект
-    //levelTree - характеристика дерева
-    //deleteKey - ключ, который мы удаляем
-    //deletePosition - позиция deleteKey в deleteNode
-    //swapPosition - индекс на ключ в currentNode, который можно будет поменять
+    /*
+     * Удаление ключа из узла
+     * Если текущий узел - лист, переходим в функцию
+     * удаления ключа из листа.
+     * Затем ищем пару "родитель-ребенок", у которой
+     * ребенок лист, и в Left хранится самое ближайшее
+     * слева к удаляемому ключу число, а в Right хранится самое
+     * ближайщее справа к удаляемому ключу число
+     * Затем рассматриваем случаи:
+     *    1. Если Left.children содержит больше ( t - 1 ) элемента,
+     *       то меняем ключи из текущего узла и Left.children, а затем
+     *       переходим в Left.children
+     *    2. Иначе если Right.children содержит больше ( t - 1 ) элемента,
+     *       то меняем ключи из текущего узла и Right.children, а затем
+     *       переходим в Right.children
+     *    3. Иначе если правый сосед Right.children содержит больше ( t - 1 ) элемента,
+     *       то перекидываем ключ из правого ключи в Right.children и переходм в
+     *       последнего
+     *    4. Иначе сливаем Right.children и его правого соседа и переходим в
+     *       полученный узел
+     *
+     * currentNode    - узел, в котором производится работа
+     * deleteNode     - узел, в которм находится удаляемый объект
+     * levelTree      - характеристика дерева
+     * deleteKey      - ключ, который мы удаляем
+     * deletePosition - позиция deleteKey в deleteNode
+     * swapPosition   - индекс на ключ в currentNode, который можно будет поменять
+     */
 
     if ( currentNode->leaf ){
-        printf("%s\n", "Leaf.");
+
         return deleteKeyFromLeaf( currentNode, levelTree, deletePosition );
     }
 
     ParentWithChild Left;
     if ( currentNode->child[ deletePosition + 1 ]->leaf){
+
         Left.parent = currentNode;
         Left.children = currentNode->child[ deletePosition + 1 ];
         Left.position = deletePosition + 1;
     }
     else{
+
         findLeft( currentNode->child[ deletePosition + 1 ] );
     }
+
     ParentWithChild Right;
     if ( currentNode->child[ deletePosition ]->leaf ){
-        printf ("%s %d\n", " Right root", deletePosition);
+
         Right.parent = currentNode;
         Right.children = currentNode->child[ deletePosition ];
         Right.position = deletePosition;
     }
     else{
+
         findRight( currentNode->child[ deletePosition ] );
     }
 
-    if ( Left.children->counter > levelTree - 1){
-        printf("%s\n", "Left child.");
-        swap( &currentNode->key[ deletePosition ], &Left.children->key[ 0] );
+    if ( Left.children->counter > levelTree - 1 ){
+
+        swap( &currentNode->key[ deletePosition ], &Left.children->key[ 0 ] );
+
         return deleteKeyFromNode( Left.children, levelTree, deleteKey, 0 );
     }
     else{
         if ( Right.children->counter > levelTree - 1 ){
-            printf("%s\n", "Right child.");
+
             swap( &currentNode->key[ deletePosition ], &Right.children->key[ Right.children->counter - 1 ] );
+
             return deleteKeyFromNode( Right.children, levelTree, deleteKey, Right.children->counter - 1 );
         }
         else{
             if ( Right.parent->child[ Right.position + 1 ]->counter > levelTree - 1 ){
-                //printf("%d\n", Left.parent->child[ Left.position + 1 ]->counter);
+
                 swap( &currentNode->key[ deletePosition ], &Right.parent->key[ Right.position ] );
                 replaceKeyToLeft( Right.parent, Right.children, Right.parent->child[ Right.position + 1 ], Right.position );
+
                 int temp = positionKeyInNode( Right.children, deleteKey );
+
                 return deleteKeyFromNode( Right.children, levelTree, deleteKey, temp );
             }
             else{
-                printf("%s\n", "Staart merge");
+
                 swap( &currentNode->key[ deletePosition ], &Right.parent->key[ Right.position ] );
-                printf("%s\n", "swap merge");
+
                 mergeNodes( Right.parent, levelTree, Right.position, Right.position + 1 );
+
                 if ( Right.parent->leaf ) {
-                    int temp = positionKeyInNode(Right.parent, deleteKey);
-                    return deleteKeyFromNode(Right.parent, levelTree, deleteKey, temp);
+
+                    int temp = positionKeyInNode( Right.parent, deleteKey );
+
+                    return deleteKeyFromNode( Right.parent, levelTree, deleteKey, temp );
                 }
                 else{
-                    int temp = positionKeyInNode(Right.children, deleteKey);
-                    return deleteKeyFromNode(Right.children, levelTree, deleteKey, temp);
+
+                    int temp = positionKeyInNode( Right.children, deleteKey );
+
+                    return deleteKeyFromNode( Right.children, levelTree, deleteKey, temp );
                 }
             }
-
         }
     }
 }
