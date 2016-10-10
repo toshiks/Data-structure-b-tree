@@ -53,7 +53,7 @@ int main ( int argc, char *argv[] )
 
     Tree *myTree = initTree( t );
     int x;
-    for ( int i = 0; i < 17; i++ ){
+    for ( int i = 0; i < 40; i++ ){
         fscanf( in, "%d", &x );
         insertKeyIntoTree( myTree, x );
         write( myTree );
@@ -95,6 +95,7 @@ Node* initNode ( int levelTree )
      * Первоначально узел:
      * 1. Лист ( temp->leaf = true )
      * 2. Пустой ( temp->counter = 0 )
+     *
      * levelTree - основная характеристика B-дерева
      */
 
@@ -115,9 +116,10 @@ void insertKeyIntoTree ( Tree *currentTree, int newKey )
      * 1. Если корень переполнен, разбиваем его на два узла,
      *    вставляем в новый корень ключ
      * 2. Иначе просто вставяем ключ в узел
+     *
      * currentTree - указатель на дерево, в которое происходит
      *               добавление нового ключа
-     * newKey - новый ключ
+     * newKey      - новый ключ
      */
 
     Node* tempRoot = currentTree->root;
@@ -144,10 +146,11 @@ void insertKeyIntoNode ( Node *currentNode, int levelTree, int newKey )
      * 1. Если узел - лист, то добавляем новый ключ на нужную позицию
      * 2. Иначе, ищем сына, в которого можно вставить элемент, еесли он переполнится
      *    то предварительно необходимо разделить узел на 2
+     *
      * currentNode - указатель на текущий узел, который рассматривается в качестве
      *               хранения нового ключа
-     * levelTree - основная характеристика B-дерева
-     * newKey - новый ключ
+     * levelTree   - основная характеристика B-дерева
+     * newKey      - новый ключ
      */
     int pos = currentNode->counter - 1;
 
@@ -187,10 +190,11 @@ void splitNode ( Node *currentNode, int levelTree, int position )
      * Узел разбивается на две составляющие
      * по levelTree - 1 элементов и одним элементом
      * как элемент - родитель
+     *
      * currentNode - указатель на родителя, который содержит ребенка
      *               с количеством элементов levelTree - 1
-     * levelTree - основная характеристика B-дерева
-     * position - позиция ребёнка в родителе
+     * levelTree   - основная характеристика B-дерева
+     * position    - позиция ребёнка в родителе
      */
 
     Node *firstPart;
@@ -229,73 +233,24 @@ void splitNode ( Node *currentNode, int levelTree, int position )
     currentNode->counter += 1;
 }
 
-/*bool mergeNodes ( Node *currentNode, int levelTree, int positionFirst, int positionSecond )
-{
-
-    if ( positionFirst < 0 || positionFirst > currentNode->counter ) {
-        return false;
-    }
-
-    if ( positionSecond < 0 || positionSecond > currentNode->counter ) {
-        return false;
-    }
-
-    if ( positionFirst > positionSecond ) {
-        swap( &positionFirst, &positionSecond );
-    }
-
-    Node *firstNode  = currentNode->child[ positionFirst ];
-    Node *secondNode = currentNode->child[ positionSecond ];
-
-
-    if ( firstNode->counter + secondNode->counter + 1 > 2 * levelTree - 1){
-        return false;
-    }
-
-    firstNode->key[ firstNode->counter + 1 ] = currentNode->key[ positionFirst ]; //спускаем предка
-    firstNode->counter += 1;
-
-    for ( int i = 0; i <= secondNode->counter; i++ ){
-        firstNode->key[ i + firstNode->counter ] = secondNode->key[ i ];
-    }
-
-    firstNode->counter += secondNode->counter;
-
-    destroyNode( secondNode );
-
-
-    if ( currentNode->counter != 1 ){
-        printf("%s\n", "Merge 1 ");
-        for (int i = positionFirst; i < currentNode->counter; i++) {
-            currentNode->key[i] = currentNode->key[i + 1];
-        }
-
-        for (int i = positionFirst + 1; i <= currentNode->counter; i++) {
-            currentNode->child[i] = currentNode->child[i + 1];
-        }
-        currentNode->counter -= 1;
-    }
-    else{
-        printf("%s\n", "Merge 2 ");
-        currentNode->counter = firstNode->counter;
-        currentNode->leaf = firstNode->leaf;
-        for (int i = 0; i < currentNode->counter; i++) {
-            currentNode->key[ i ] = firstNode->key[ i ];
-        }
-
-        for (int i = 0; i <= currentNode->counter; i++) {
-            currentNode->child[ i ] = firstNode->child[ i ];
-        }
-        destroyNode( firstNode );
-    }
-
-    return true;
-}*/
-
 bool mergeNodes ( Node *currentNode, int levelTree, int positionFirst, int positionSecond )
 {
     /*
+     * Соединение двух узлов в один
+     * Из предка берем текущий ключ, относительно
+     * которого выбираются узлы, и опускается в левого предка.
+     * В левого предка также сливается правый предок, который
+     * впоследствии удаляется.
+     * Далее возможны 2 варианта:
+     *   1. Если родитель состоял из одного элемента - заменить
+     *      его левым ребенком
+     *   2. Если родитель состоит из множества элементов - удаляем
+     *      искомый элемент
      *
+     * currentNode    - рассматриваемый предок, дети которого сольются
+     * levelTree      - основная характеристика B-дерева
+     * positionFirst  - позиция левого ребенка в currentNode
+     * positionSecond - позиция правого ребенка в currentNode
      */
 
     if ( positionFirst < 0 || positionFirst > currentNode->counter ) {
@@ -318,7 +273,6 @@ bool mergeNodes ( Node *currentNode, int levelTree, int positionFirst, int posit
     if ( firstNode->counter + secondNode->counter + 1 > 2 * levelTree - 1){
         return false;
     }
-    //printf("%s %d\n", "In merge", currentNode->key[ positionFirst ]);
 
     firstNode->key[ firstNode->counter ] = currentNode->key[ positionFirst ]; //спускаем предка
     firstNode->counter += 1;
@@ -331,11 +285,6 @@ bool mergeNodes ( Node *currentNode, int levelTree, int positionFirst, int posit
     }
 
     firstNode->counter += secondNode->counter;
-    printf(" %d %s", currentNode->key[ positionFirst ], "It's merge: ");
-    for ( int i = 0; i < currentNode->counter; i++){
-        printf("%d ", currentNode->key[ i ]);
-    }
-    printf("\n");
 
     destroyNode( secondNode );
 
@@ -372,21 +321,13 @@ bool mergeNodes ( Node *currentNode, int levelTree, int positionFirst, int posit
 
 ParentWithChild findKeyInTree ( Tree *currentTree, int findKey )
 {
-    return findKeyInNode ( currentTree->root, currentTree->root, findKey, -1 );
+    return findKeyInNode ( currentTree->root, currentTree->root, findKey, 0 );
 }
 
 ParentWithChild findKeyInNode ( Node *childNode, Node *parentNode, int findKey, int positionNode )
 {
-    printf("%s %d\n", "child node ", childNode->key[0] );
     int positionKey = positionKeyInNode( childNode, findKey );
 
-    /*if ( positionKey == -1 && childNode->leaf ){
-        printf("%s\n", "2");
-        ParentWithChild temp;
-        temp.children = temp.parent = NULL;
-        temp.position = -1;
-        return temp;
-    }*/
     if ( positionKey == -1 && childNode->leaf ){
         ParentWithChild temp;
         temp.children = temp.parent = NULL;
@@ -395,13 +336,14 @@ ParentWithChild findKeyInNode ( Node *childNode, Node *parentNode, int findKey, 
     }
 
     if ( positionKey != -1 ){
-        //printf("%d %d %d\n", positionNode, parentNode->key[0], childNode->key[0]);
         ParentWithChild temp;
         temp.children = childNode;
         temp.parent = parentNode;
         temp.position = positionNode;
         return temp;
     }
+
+
 
     for ( int i = 1; i <= childNode->counter; i++ ){
         if ( childNode->key[ i - 1 ] > findKey ){
