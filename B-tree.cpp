@@ -1,6 +1,5 @@
 #include "B-tree.h"
 #include <malloc.h>
-#include <stdlib.h>
 #include <stdio.h>
 
 struct ParentWithChild{   //структура связи родителя и сына
@@ -799,9 +798,13 @@ void wr ( Node *temp )
 
 void destroyNode ( Node *currentNode )
 {
-    free( currentNode->key );
-    free( currentNode->child );
-    free( currentNode );
+    if ( currentNode != NULL ) {
+      //  printf("%s\n", "kek1");
+        free(currentNode->child);
+        free(currentNode->key);
+        free(currentNode);
+    }
+    printf("%s\n", "end");
 }
 
 void destroyTree ( Node *deleteNode) {
@@ -814,13 +817,19 @@ void destroyTree ( Node *deleteNode) {
     }
     else {
 
-        for (int i = 0; i <= deleteNode->counter; i++) {
+       // printf("%d %d\n", deleteNode->counter, deleteNode->key[1]);
 
+
+        for (int i = deleteNode->counter; i >= 0; i-- ) {
+            printf("%d %d\n", deleteNode->counter, i);
             destroyTree(deleteNode->child[i]);
         }
+
+        free(deleteNode);
     }
 
-    destroyNode(deleteNode);
+
+    //printf("%s\n", "keks");
 }
 
 void write( Tree *temp )
