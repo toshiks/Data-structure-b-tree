@@ -97,7 +97,7 @@ void Heap::decreaseKey(int operation, int val) //заменяем ключ, ко
     if (temp != -1) {
         for (int i = 0; i < countHeap; i++) {
             if (mas[i] == temp) {
-                mas[i] -= val;
+                mas[i] = val;
                 siftUp(i);
             }
         }
