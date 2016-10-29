@@ -3,11 +3,11 @@
 #include <string>
 using namespace std;
 
-void swap(int *x, int *y)
+void swap(int &x, int &y)
 {
-    int t = *x;
-    *x = *y;
-    *y = t;
+    int t = x;
+    x = y;
+    y = t;
 }
 
 class Heap {
@@ -46,7 +46,7 @@ Heap::~Heap() //Деструктор
 void Heap::siftUp(int i) //Восстановление свойств кучи, если этот элемент меньше своего предка
 {
     while ( ( (i-1)/2 >= 0 ) && (mas[i] < mas[(i - 1) / 2]) ) {
-        swap(&mas[i], &mas[(i - 1) / 2]);
+        swap(mas[i], mas[(i - 1) / 2]);
         i = (i - 1) / 2;
     }
 }
@@ -63,7 +63,7 @@ void Heap::siftDown(int i) //Восстановление свойст кучи,
             j = rightChild;
         if (mas[i] <= mas[j])
             break;
-        swap(&mas[i], &mas[j]);
+        swap(mas[i], mas[j]);
         i = j;
     }
 }
