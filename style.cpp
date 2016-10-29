@@ -2,32 +2,26 @@
 #include <cmath>
 using namespace std;
 
-struct Clothes {
-    int color;
-    int type;
-};
+int mas1[100001];
+int mas2[100001];
 
-Clothes mass[200001];
-
-void swap(Clothes &a, Clothes &b)
+void swap(int &a, int &b)
 {
-    int tc = a.color;
-    int tt = a.type;
+    int t = a;
     a = b;
-    b.color = tc;
-    b.type = tt;
+    b = a;
 }
 
 
-void sortq(int left, int right, Clothes *mas)
+void sortq(int left, int right, int *mas)
 {
     int i = left;
     int j = right;
-    int r = mas[(i + j) / 2].color;
+    int r = mas[(i + j) / 2];
     while (i <= j) {
-        while (mas[i].color < r)
+        while (mas[i] < r)
             i++;
-        while (mas[j].color > r)
+        while (mas[j] > r)
             j--;
         if (i <= j) {
             swap(mas[i], mas[j]);
@@ -41,40 +35,35 @@ void sortq(int left, int right, Clothes *mas)
         sortq(i, right, mas);
 }
 
-int sub(Clothes a, Clothes b)
-{
-    if (a.type == b.type)
-        return 10000001;
-    return abs(a.color - b.color);
-}
-
 int main()
 {
     int N, M;
     cin >> N;
     for (int i = 0; i < N; i++) {
-        cin >> mass[i].color;
-        mass[i].type = 0;
+        cin >> mas1[i];
     }
     cin >> M;
-    for (int i = N; i < N+ M; i++) {
-        cin >> mass[i].color;
-        mass[i].type = 1;
+    for (int i = 0; i < M; i++) {
+        cin >> mas2[i];
     }
-    sortq(0, N + M - 1, mass);
+
+    sortq(0, N-1, mas1);
+    sortq(0, M-1, mas2);
     int a, b, raz = 10000001;
-    for (int i = 1; i < N + M; i++) {
-        int temp = sub(mass[i - 1], mass[i]);
-        if (temp < raz) {
-            raz = temp;
-            if (mass[i].type == 1) {
-                a = mass[i - 1].color;
-                b = mass[i].color;
-            }
-            else {
-                b = mass[i - 1].color;
-                a = mass[i].color;
-            }
+    int chet1 = 0;
+    int chet2 = 0;
+    a = mas1[chet1];
+    b = mas2[chet2];
+    raz = abs(a - b);
+    while (chet1 < N && chet2 < M) {
+        if (mas1[chet1] < mas2[chet2])
+            chet1++;
+        else
+            chet2++;
+        if (raz > abs(mas1[chet1] - mas2[chet2])) {
+            raz = abs(mas1[chet1] - mas2[chet2]);
+            a = mas1[chet1];
+            b = mas2[chet2];
         }
     }
 
