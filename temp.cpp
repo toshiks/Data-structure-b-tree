@@ -29,8 +29,8 @@ public:
 Heap::Heap(const int x) //Конструктор, создаем кучу размером x
 {
     mas = new int[x + 1];
-    decrease = new int[2*x + 1];
-    for (int i = 0; i < 2*x + 1; i++) {
+    decrease = new int[2 * x + 1];
+    for (int i = 0; i < 2 * x + 1; i++) {
         decrease[i] = -1;
     }
     countHeap = 0;
@@ -45,7 +45,7 @@ Heap::~Heap() //Деструктор
 
 void Heap::siftUp(int i) //Восстановление свойств кучи, если этот элемент меньше своего предка
 {
-    while ( ( (i-1)/2 >= 0 ) && (mas[i] < mas[(i - 1) / 2]) ) {
+    while (((i - 1) / 2 >= 0) && (mas[i] < mas[(i - 1) / 2])) {
         swap(mas[i], mas[(i - 1) / 2]);
         i = (i - 1) / 2;
     }
@@ -85,6 +85,7 @@ int Heap::extractMin() //Берём минимум - он является ко�
     int temp = mas[0];
     mas[0] = mas[countHeap - 1];
     countHeap--;
+    countBuff++;
     siftDown(0);
     return temp;
 }
@@ -92,6 +93,7 @@ int Heap::extractMin() //Берём минимум - он является ко�
 void Heap::decreaseKey(int operation, int val) //заменяем ключ, который был добавлен на operation операции, ключом val
 {
     operation--;
+    countBuff++;
     int temp = decrease[operation];
     decrease[operation] = -1;
     if (temp != -1) {
@@ -99,6 +101,7 @@ void Heap::decreaseKey(int operation, int val) //заменяем ключ, ко
             if (mas[i] == temp) {
                 mas[i] = val;
                 siftUp(i);
+                break;
             }
         }
     }
@@ -131,6 +134,7 @@ int main()
             H.decreaseKey(x, y);
         }
     }
-
+    in.close();
+    out.close();
     return 0;
 }
