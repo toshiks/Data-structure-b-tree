@@ -100,6 +100,7 @@ void Heap::decreaseKey(int operation, int val) //заменяем ключ, ко
             if (mas[i] == temp) {
                 mas[i] = val;
                 siftUp(i);
+                break;
             }
             int leftChild = i * 2 + 1;
             int rightChild = i * 2 + 2;
