@@ -5,13 +5,6 @@ using namespace std;
 int mas1[100001];
 int mas2[100001];
 
-void swap(int &a, int &b)
-{
-    int t = a;
-    a = b;
-    b = a;
-}
-
 int main()
 {
     int N, M;
