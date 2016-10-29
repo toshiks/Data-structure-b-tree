@@ -12,29 +12,6 @@ void swap(int &a, int &b)
     b = a;
 }
 
-
-void sortq(int left, int right, int *mas)
-{
-    int i = left;
-    int j = right;
-    int r = mas[(i + j) / 2];
-    while (i <= j) {
-        while (mas[i] < r)
-            i++;
-        while (mas[j] > r)
-            j--;
-        if (i <= j) {
-            swap(mas[i], mas[j]);
-            i++;
-            j--;
-        }
-    }
-    if (left < j)
-        sortq(left, j, mas);
-    if (right > i)
-        sortq(i, right, mas);
-}
-
 int main()
 {
     int N, M;
@@ -47,8 +24,6 @@ int main()
         cin >> mas2[i];
     }
 
-    sortq(0, N-1, mas1);
-    sortq(0, M-1, mas2);
     int a, b, raz = 10000001;
     int chet1 = 0;
     int chet2 = 0;
