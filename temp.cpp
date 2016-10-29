@@ -1,152 +1,130 @@
 #include <iostream>
-#include <fstream>
-#include <string>
+#include <cmath>
 using namespace std;
 
-void swap(int &x, int &y)
-{
-    int t = x;
-    x = y;
-    y = t;
-}
-
-class Heap {
-private:
-    int countHeap;			//количество ключей в куче
-    int countBuff;			//количество операций
-    int *mas;				//сама куча
-    int *decrease;			//буффер операций
-    void siftUp(int i);
-    void siftDown(int i);
-public:
-    Heap(const int x);
-    ~Heap();
-    void push(int x);
-    int extractMin();
-    void decreaseKey(int operation, int val);
+struct Clothes {
+    int color;
+    int type;
 };
 
-Heap::Heap(const int x) //Конструктор, создаем кучу размером x
+Clothes mass[400001];
+int typ[4];
+int col[4];
+int Nc[4];
+
+void swap(Clothes &a, Clothes &b)
 {
-    mas = new int[x + 1];
-    decrease = new int[2*x + 1];
-    for (int i = 0; i < 2*x + 1; i++) {
-        decrease[i] = -1;
-    }
-    countHeap = 0;
-    countBuff = 0;
+    int tc = a.color;
+    int tt = a.type;
+    a = b;
+    b.color = tc;
+    b.type = tt;
 }
 
-Heap::~Heap() //Деструктор
-{
-    delete[] mas;
-    delete[] decrease;
-}
 
-void Heap::siftUp(int i) //Восстановление свойств кучи, если этот элемент меньше своего предка
+void sortq(int left, int right, Clothes *mas)
 {
-    while ( ( (i-1)/2 >= 0 ) && (mas[i] < mas[(i - 1) / 2]) ) {
-        swap(mas[i], mas[(i - 1) / 2]);
-        i = (i - 1) / 2;
-    }
-}
-
-void Heap::siftDown(int i) //Восстановление свойст кучи, если этот элемент больше своего ребенка
-{
-    int leftChild;
-    int rightChild;
-    while (2 * i + 1 < countHeap) {
-        leftChild = 2 * i + 1;
-        rightChild = 2 * i + 2;
-        int j = leftChild;
-        if (rightChild < countHeap && mas[rightChild] < mas[leftChild])
-            j = rightChild;
-        if (mas[i] <= mas[j])
-            break;
-        swap(mas[i], mas[j]);
-        i = j;
-    }
-}
-
-void Heap::push(int x) //добавление элемента
-{
-    mas[countHeap] = x;
-    decrease[countBuff] = x;
-    countHeap++;
-    countBuff++;
-    siftUp(countHeap - 1);
-}
-
-int Heap::extractMin() //Берём минимум - он является корнем дерева
-{
-    if (countHeap == 0) {
-        return -1;
-    }
-    int temp = mas[0];
-    mas[0] = mas[countHeap - 1];
-    countHeap--;
-    siftDown(0);
-    return temp;
-}
-
-void Heap::decreaseKey(int operation, int val) //заменяем ключ, который был добавлен на operation операции, ключом val
-{
-    operation--;
-    int temp = decrease[operation];
-    decrease[operation] = -1;
-    if (temp != -1) {
-        int i = 0;
-        while (i < countHeap) {
-            if (mas[i] == temp) {
-                mas[i] = val;
-                siftUp(i);
-            }
-            int leftChild = i * 2 + 1;
-            int rightChild = i * 2 + 2;
-            if (leftChild < countHeap) {
-                if (mas[leftChild] >= temp)
-                    i = leftChild;
-            }
-            else
-                break;
-
-            if (rightChild < countHeap) {
-                if (mas[rightChild] >= temp)
-                    i = rightChild;
-                if (mas[leftChild] == temp)
-                    i = leftChild;
-            }
+    int i = left;
+    int j = right;
+    int r = mas[(i + j) / 2].color;
+    while (i <= j) {
+        while (mas[i].color < r)
+            i++;
+        while (mas[j].color > r)
+            j--;
+        if (i <= j) {
+            swap(mas[i], mas[j]);
+            i++;
+            j--;
         }
     }
+    if (left < j)
+        sortq(left, j, mas);
+    if (right > i)
+        sortq(i, right, mas);
+}
+
+int sub(Clothes a, Clothes b)
+{
+    if (a.type == b.type)
+        return 10000001;
+    return abs(a.color - b.color);
+}
+
+void read(int l, int t, int &N)
+{
+    cin >> N;
+    for (int i = l; i < l + N; i++) {
+        cin >> mass[i].color;
+        mass[i].type = t;
+    }
+}
+
+int max(int a, int b)
+{
+    if (a > b)
+        return a;
+    else
+        return b;
+}
+
+int min(int a, int b)
+{
+    if (a < b)
+        return a;
+    else
+        return b;
 }
 
 int main()
 {
-    ifstream in("priorityqueue.in");
-    ofstream out("priorityqueue.out");
-    string command;
-    int x, y;
-    Heap H(100001);
-    while (!in.eof()) {
-        in >> command;
-        if (command == "push") {
-            in >> x;
-            H.push(x);
+    read(0, 0, Nc[0]);
+    read(Nc[0], 1, Nc[1]);
+    read(Nc[0]+Nc[1], 2, Nc[2]);
+    read(Nc[0]+Nc[1]+Nc[2], 3, Nc[3]);
+    sortq(0, Nc[0] + Nc[1] + Nc[2] + Nc[3] - 1, mass);
+    int i, j, raz = 10000001;
+    i = 0;
+    j = Nc[0] + Nc[1] + Nc[2] + Nc[3] - 1;
+    while (Nc[0] != 0 && Nc[1] != 0 && Nc[2] != 0 && Nc[3] != 0) {
+        if (Nc[mass[i].type] > 1) {
+            Nc[mass[i].type]--;
+            i++;
         }
-        if (command == "extract-min") {
-            x = H.extractMin();
-            if (x == -1) {
-                out << "*\n";
+        else {
+            if (Nc[mass[j].type] > 1) {
+                Nc[mass[j].type]--;
+                j--;
             }
             else
-                out << x << '\n';
-        }
-        if (command == "decrease-key") {
-            in >> x;
-            in >> y;
-            H.decreaseKey(x, y);
+                break;
         }
     }
 
+    typ[mass[i].type] = 1;
+    typ[mass[j].type] = 1;
+    col[mass[i].type] = mass[i].color;
+    col[mass[j].type] = mass[j].color;
+
+    int mi = min(col[mass[i].type], col[mass[j].type]);
+    int ma = max(col[mass[i].type], col[mass[j].type]);
+
+
+    for (int z = 0; z < 4; z++) {
+        if (typ[z] == 0) {
+            for (int k = i + 1; k < j; k++) {
+                if (mass[k].type == z) {
+                    if (mass[k].color >= mi && mass[k].color <= ma) {
+                        typ[z] = 1;
+                        col[z] = mass[k].color;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    for (i = 0; i < 4; i++)
+        cout << col[i] << ' ';
     return 0;
 }
