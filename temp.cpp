@@ -105,7 +105,7 @@ void Heap::decreaseKey(int operation, int val) //заменяем ключ, ко
             int leftChild = i * 2 + 1;
             int rightChild = i * 2 + 2;
             if (leftChild < countHeap) {
-                if (mas[leftChild] >= temp)
+                if (mas[leftChild] <= temp)
                     i = leftChild;
             }
             else
