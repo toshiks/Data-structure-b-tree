@@ -2,6 +2,13 @@
 #include <fstream>
 using namespace std;
 
+void swap(int &a, int &b)
+{
+	int t = a;
+	a = b;
+	b = t;
+}
+
 void sortq(int left, int right, int *mas)
 {
 	int i = left;
