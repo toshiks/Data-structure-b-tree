@@ -95,27 +95,10 @@ void Heap::decreaseKey(int operation, int val) //заменяем ключ, ко
     int temp = decrease[operation];
     decrease[operation] = -1;
     if (temp != -1) {
-        int i = 0;
-        while (i < countHeap) {
+        for (int i = 0; i < countHeap; i++) {
             if (mas[i] == temp) {
-                mas[i] = val;
+                mas[i] -= val;
                 siftUp(i);
-                break;
-            }
-            int leftChild = i * 2 + 1;
-            int rightChild = i * 2 + 2;
-            if (leftChild < countHeap) {
-                if (mas[leftChild] >= temp)
-                    i = leftChild;
-            }
-            else
-                break;
-
-            if (rightChild < countHeap) {
-                if (mas[rightChild] <= temp)
-                    i = rightChild;
-                if (mas[leftChild] == temp)
-                    i = leftChild;
             }
         }
     }
