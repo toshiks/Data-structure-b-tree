@@ -111,8 +111,7 @@ int main()
     int x, y;
     Heap H;
     int coun = 0;
-    while (!in.eof()) {
-        in >> command;
+    while (in >> command) {
         coun++;
         if (command == "push") {
             in >> x;
