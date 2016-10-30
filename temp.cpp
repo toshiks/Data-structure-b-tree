@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <vector>
 using namespace std;
 
 struct heaper {
@@ -10,12 +11,9 @@ struct heaper {
 
 void swap(heaper &x, heaper &y)
 {
-    int t = x.key;
-    int a = x.val;
-    x.key = y.key;
-    x.val = y.val;
-    y.key = t;
-    y.val = a;
+    heaper tmp = x;
+    x = y;
+    y = tmp;
 }
 
 
@@ -23,12 +21,11 @@ void swap(heaper &x, heaper &y)
 class Heap {
 private:
     int countHeap;			//количество ключей в куче
-    heaper mas[1001];				//сама куча
+    vector<heaper> mas;				//сама куча
     void siftUp(int i);
     void siftDown(int i);
 public:
     Heap();
-    ~Heap();
     void push(int x, int key);
     int extractMin();
     void decreaseKey(int operation, int val);
@@ -40,10 +37,6 @@ Heap::Heap() //Конструктор, создаем кучу размером 
     countHeap = 0;
 }
 
-Heap::~Heap() //Деструктор
-{
-
-}
 
 void Heap::siftUp(int i) //Восстановление свойств кучи, если этот элемент меньше своего предка
 {
@@ -72,8 +65,10 @@ void Heap::siftDown(int i) //Восстановление свойст кучи,
 
 void Heap::push(int x, int key) //добавление элемента
 {
-    mas[countHeap].val = x;
-    mas[countHeap].key = key;
+    heaper temp;
+    temp.val = x;
+    temp.key = key;
+    mas.push_back(temp);
     countHeap++;
     siftUp(countHeap - 1);
 }
@@ -82,6 +77,7 @@ int Heap::extractMin() //Берём минимум - он является ко�
 {
     int temp = mas[0].val;
     mas[0] = mas[countHeap - 1];
+    mas.pop_back();
     countHeap--;
     siftDown(0);
     return temp;
