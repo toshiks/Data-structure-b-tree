@@ -20,11 +20,11 @@ struct Tree{        //структура дерева
     Node *root;     //указатель на корень дерева
 };
 
-Tree* initTree                ( int levelTree );                                                       //инициализация дерева
-void insertKeyIntoTree        ( Tree *, int newKey, string *newStr);                                                   //вставка ключа в дерево
-void write                    ( Tree * );                                                              //вывод дерева
-bool deleteKeyFromTree        ( Tree *, int deleteKey );                                               //удаление ключа из дерева
-void destroyTree              ( Node *, int levelTree );                                                              //удаление дерева
+Tree* initTree                ( int levelTree );                                                              //инициализация дерева
+void insertKeyIntoTree        ( struct Tree *, int newKey, struct string *newStr);                            //вставка ключа в дерево
+void write                    ( struct Tree * );                                                              //вывод дерева
+bool deleteKeyFromTree        ( struct Tree *, int deleteKey );                                               //удаление ключа из дерева
+void destroyTree              ( struct Node *, int levelTree );                                               //удаление дерева
 
 
 #endif //B_TREE_B_TREE_H

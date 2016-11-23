@@ -1,15 +1,10 @@
-//
-// Created by toxad on 02.11.2016.
-//
 #include <stdio.h>
-#include <stdlib.h>
 #include <malloc.h>
 #include "B+tree.h"
 
-void swap (int *x, int *y)
-{
+void swap (int *x, int *y) {
     /*
-     * Функиция, меняющая местами два числа
+     * Функция, меняющая местами два числа
      */
 
     int t = *x;
@@ -17,24 +12,18 @@ void swap (int *x, int *y)
     *y = t;
 }
 
-struct ParentWithChild{   //структура связи родителя и сына
-    Node *children;       //узел-сын
-    Node *parent;         //узел-родитель
-    int position;         //позиция сына в родителе
-};
-
 void swap                     ( int *, int * );                                                        //меняем местами два числа
 Node* initNode                ( int levelTree );                                                       //инициализация узла дерева
 void splitNode                ( Node *, int levelTree, int position );
-void insertKeyIntoNode ( Node *currentNode, int levelTree, int newKey, string *newStr );
-bool deleteKeyFromNode ( Node *currentNode, int levelTree, int position, int deleteKey );
-int findKeyInNode ( Node *, int findKey );
-void replaceKeyToRightLeaf( Node *parentNode, Node *leftChildNode, Node *rightChildNode, int position);
-void replaceKeyToLeftLeaf( Node *parentNode, Node *leftChildNode, Node *rightChildNode, int position);
-void replaceKeyToRightNode( Node *parentNode, Node *leftChildNode, Node *rightChildNode, int position);
-void replaceKeyToLeftNode( Node *parentNode, Node *leftChildNode, Node *rightChildNode, int position);
-bool mergeLeafs ( Node *currentNode, int levelTree, int positionFirst, int positionSecond );
-int ogr( int levelTree );
+void insertKeyIntoNode        ( Node *, int levelTree, int newKey, string * );
+bool deleteKeyFromNode        ( Node *, int levelTree, int position, int deleteKey );
+int findKeyInNode             ( Node *, int findKey );
+void replaceKeyToRightLeaf    ( Node *, Node *leftChildNode, Node *rightChildNode, int position);
+void replaceKeyToLeftLeaf     ( Node *, Node *leftChildNode, Node *rightChildNode, int position);
+void replaceKeyToRightNode    ( Node *, Node *leftChildNode, Node *rightChildNode, int position);
+void replaceKeyToLeftNode     ( Node *, Node *leftChildNode, Node *rightChildNode, int position);
+bool mergeLeafs               ( Node *, int levelTree, int positionFirst, int positionSecond );
+int ogr                       ( int levelTree );
 
 int ogr( int levelTree )
 {
@@ -208,7 +197,13 @@ bool deleteKeyFromTree( Tree *currentTree, int deleteKey )
 {
     //int pos = findKeyInNode( currentTree->root, deleteKey );
     //printf("position: %d\n", pos);
-    return deleteKeyFromNode( currentTree->root, currentTree->level, 0, deleteKey );
+    bool t = deleteKeyFromNode( currentTree->root, currentTree->level, 0, deleteKey );
+    if ( currentTree->root->counter == 0 ){
+        Node *temp = currentTree->root;
+        currentTree->root = temp->child[0];
+        //destroyNode( temp );
+    }
+    return t;
 }
 
 bool mergeNodes ( Node *currentNode, int levelTree, int positionFirst, int positionSecond )
@@ -337,6 +332,25 @@ bool deleteKeyFromNode ( Node *currentNode, int levelTree, int position, int del
 
                     }
                 }
+                else{
+                    if ( currentNode->child[ pos - 1 ]->counter > levelTree - 1 ){
+
+                        replaceKeyToRightLeaf( currentNode, currentNode->child[ pos - 1 ], currentNode->child[ pos ], pos - 1 );
+
+                        return deleteKeyFromNode(  currentNode->child[ pos ], levelTree, pos, deleteKey );
+                    }
+                    else{
+
+                        mergeLeafs( currentNode, levelTree, pos - 1, pos );
+
+                        if ( currentNode->leaf ){
+                            return deleteKeyFromNode( currentNode, levelTree, pos, deleteKey );
+                        }
+                        else {
+                            return deleteKeyFromNode(  currentNode->child[ pos - 1 ], levelTree, pos, deleteKey );
+                        }
+                    }
+                }
             }
         }
         else{
@@ -351,17 +365,31 @@ bool deleteKeyFromNode ( Node *currentNode, int levelTree, int position, int del
             }
 
             if ( temp ){
-                if ( currentNode->child[ pos + 1 ]->counter > levelTree - 1 ){
-                    printf("parent: %d\n", currentNode->child[ pos + 1 ]->key[ 0 ]);
-                    //swap( &currentNode->key[ pos ], &currentNode->child[ pos + 1 ]->key[ 0 ] );
+                if ( pos < currentNode->counter ) {
+                    if (currentNode->child[pos + 1]->counter > levelTree - 1) {
+                        printf("parent: %d\n", currentNode->child[pos + 1]->key[0]);
+                        //swap( &currentNode->key[ pos ], &currentNode->child[ pos + 1 ]->key[ 0 ] );
 
-                    replaceKeyToLeftNode( currentNode, currentNode->child[pos], currentNode->child[pos+1], pos );
+                        replaceKeyToLeftNode(currentNode, currentNode->child[pos], currentNode->child[pos + 1], pos);
+                    } else {
+
+                        //swap( &currentNode->key[ pos ], &Right.parent->key[ Right.position ] );
+
+                        mergeNodes(currentNode, levelTree, pos, pos + 1);
+                    }
                 }
                 else{
+                    if (currentNode->child[pos - 1]->counter > levelTree - 1) {
+                        printf("parent: %d\n", currentNode->child[pos + 1]->key[0]);
+                        //swap( &currentNode->key[ pos ], &currentNode->child[ pos + 1 ]->key[ 0 ] );
 
-                    //swap( &currentNode->key[ pos ], &Right.parent->key[ Right.position ] );
+                        replaceKeyToRightNode(currentNode, currentNode->child[pos], currentNode->child[pos + 1], pos);
+                    } else {
 
-                    mergeNodes( currentNode, levelTree, pos, pos + 1 );
+                        //swap( &currentNode->key[ pos ], &Right.parent->key[ Right.position ] );
+
+                        mergeNodes(currentNode, levelTree, pos - 1, pos );
+                    }
                 }
 
             }
@@ -480,7 +508,7 @@ void replaceKeyToLeftLeaf( Node *parentNode, Node *leftChildNode, Node *rightChi
     strCopy( rightChildNode->str[0], leftChildNode->str[ leftChildNode->counter - 1 ] );
     leftChildNode->child[ leftChildNode->counter - 1 ]   =  rightChildNode->child[ 0 ];
     leftChildNode->child[ leftChildNode->counter ] = rightChildNode;
-    leftChildNode->counter -= 1;
+
     parentNode->key[ position ] = rightChildNode->key[ 1 ];
 
     for ( int i = 0; i <= rightChildNode->counter; i++ ){
@@ -554,14 +582,13 @@ void replaceKeyToRightLeaf( Node *parentNode, Node *leftChildNode, Node *rightCh
 
     rightChildNode->key[ 0 ]   = leftChildNode->key[ leftChildNode->counter - 1 ];
     rightChildNode->child[ 0 ] = leftChildNode->child[ leftChildNode->counter - 1 ];
-    rightChildNode->str[ 0 ]   = rightChildNode->str[ leftChildNode->counter - 1 ];
+    strCopy(rightChildNode->str[ leftChildNode->counter - 1 ],rightChildNode->str[ 0 ]  );
 
     parentNode->key[ position ] = rightChildNode->key[ 0 ];
 
     leftChildNode->counter -= 1;
     leftChildNode->child[ leftChildNode->counter ] = rightChildNode;
 }
-
 
 void replaceKeyToRightNode( Node *parentNode, Node *leftChildNode, Node *rightChildNode, int position)
 {
@@ -641,4 +668,38 @@ int findKeyInNode ( Node *currentNode, int findKey )
         }
         return currentNode->counter;
     }
+}
+
+void destroyNode ( Node *currentNode, int levelTree )
+{
+    if ( currentNode != NULL ) {
+        //  printf("%s\n", "kek1");
+        free(currentNode->child);
+        free(currentNode->key);
+        strMasDestroy( currentNode->str, levelTree );
+        free(currentNode);
+    }
+    printf("%s\n", "end");
+}
+
+void destroyTree ( Node *deleteNode, int levelTree ) {
+    /*
+     * Рекурсивное удаление дерева
+     */
+    if (deleteNode->leaf) {
+
+        destroyNode(deleteNode, levelTree );
+    }
+    else {
+
+        for (int i = deleteNode->counter; i >= 0; i-- ) {
+            printf("%d %d\n", deleteNode->counter, i);
+            destroyTree(deleteNode->child[i], levelTree );
+        }
+
+        free(deleteNode);
+    }
+
+
+    //printf("%s\n", "keks");
 }

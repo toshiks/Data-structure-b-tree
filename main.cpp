@@ -1,35 +1,40 @@
 #include <stdio.h>
+#include "B+tree.h"
 #include <stdlib.h>
-#include "B-tree.h"
-#define MAX_IN ( ( 1 << 31 )  - 1 )
-
 
 int main ( int argc, char *argv[] )
 {
-    //int a, b;
-
-    FILE *in;
-    in = fopen( "input.txt", "r" );
     int t;
+    int temp;
+    int quantity;
+    int indx;
+
+    printf("Enter the minimum number of keys in a node (3 or more): ");
     scanf( "%d", &t );
 
-    Tree *myTree = initTree( t );
-    int x;
-    for ( int i = 0; i < 1845; i++ ){
-        fscanf( in, "%d", &x );
-        insertKeyIntoTree( myTree, x );
-        //write( myTree );
-        //printf("\n\n");
+    printf("Enter the quantity elements of tree: ");
+    scanf( "%d", &quantity );
+
+    struct Tree *myTree = initTree( t );
+    string *a = strCreate();
+
+    for ( int i = 0; i < quantity; i++ ){
+        scanf( "%d", &indx );
+        strScan( a, stdin );
+        insertKeyIntoTree( myTree, indx, a );
     }
-    //write( myTree );
-    /*while ( x != 0 ) {
-        scanf("%d", &x);
-        deleteKeyFromTree(myTree, x);
-        write(myTree);
-    }*/
+
     write( myTree );
-    fclose( in );
-    destroyTree( myTree->root );
-   // system("pause>>null");
+
+    printf( "Enter the index of the item that you want to remove: " );
+    scanf( "%d", &temp );
+    deleteKeyFromTree( myTree, temp );
+
+    write( myTree );
+    system("pause>>null");
+
+
+    destroyTree(myTree->root, myTree->level);
+
     return 0;
 }

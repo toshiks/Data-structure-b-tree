@@ -10,10 +10,10 @@ struct ParentWithChild{   //структура связи родителя и с
 
 void swap                     ( int *, int * );                                                        //меняем местами два числа
 Node* initNode                ( int levelTree );                                                       //инициализация узла дерева
-void insertKeyIntoNode        ( Node *, int levelTree, int newKey );                                   //вставка ключа в узел дерева
+void insertKeyIntoNode        ( Node *, int levelTree, int newKey, string  *newStr );                                   //вставка ключа в узел дерева
 void splitNode                ( Node *, int levelTree, int position );                                 //раделение узла на два узла
 bool mergeNodes               ( Node *, int levelTree, int positionFirst, int positionSecond );        //соединение узлов
-void destroyNode              ( Node * );                                                              //удаление узлов
+void destroyNode              ( Node *, int levelTree );                                                              //удаление узлов
 bool deleteKeyFromLeaf        ( Node *, int levelTree, int positionKey );                              //удаление ключа из узла-листа
 ParentWithChild findKeyInTree ( Tree *, int findKey );                                                 //поиск ключа в дереве
 ParentWithChild findKeyInNode ( Node *, Node *, int findKey, int positionNode );                       //поиск ключа в узле
@@ -56,13 +56,14 @@ Node* initNode ( int levelTree )
 
     temp->leaf    = true;
     temp->counter = 0;
-    temp->key     = ( int * )malloc( ( 2 * levelTree - 1) * sizeof( int ) );
+    temp->key     = ( int * )malloc( ( 2 * levelTree - 1 ) * sizeof( int ) );
     temp->child   = ( Node ** )malloc( 2 * levelTree * sizeof( Node * ) );
+    temp->str     = strMasCreate( 2 *  levelTree - 1 );
 
     return temp;
 }
 
-void insertKeyIntoTree ( Tree *currentTree, int newKey )
+void insertKeyIntoTree ( Tree *currentTree, int newKey, string *newStr )
 {
     /*
      * Добавление ключа в дерево:
@@ -87,15 +88,15 @@ void insertKeyIntoTree ( Tree *currentTree, int newKey )
 
         splitNode( newRoot, currentTree->level, 0 );
 
-        insertKeyIntoNode( newRoot, currentTree->level, newKey );
+        insertKeyIntoNode( newRoot, currentTree->level, newKey, newStr );
     }
     else{
 
-        insertKeyIntoNode( tempRoot, currentTree->level, newKey );
+        insertKeyIntoNode( tempRoot, currentTree->level, newKey, newStr );
     }
 }
 
-void insertKeyIntoNode ( Node *currentNode, int levelTree, int newKey )
+void insertKeyIntoNode ( Node *currentNode, int levelTree, int newKey, string *newStr )
 {
     /*
      * Добавление ключа в узел
@@ -116,10 +117,12 @@ void insertKeyIntoNode ( Node *currentNode, int levelTree, int newKey )
         while ( ( pos >= 0 ) && ( newKey < currentNode->key[ pos ] ) ){
 
             currentNode->key[ pos + 1 ] = currentNode->key[ pos ];
+            strCopy( currentNode->str[ pos ], currentNode->str[ pos + 1 ] );
             pos -= 1;
         }
 
         currentNode->key[ pos + 1 ] = newKey;
+        strCopy( newStr, currentNode->str[ pos + 1 ] );
 
         currentNode->counter += 1;
     }
@@ -134,15 +137,22 @@ void insertKeyIntoNode ( Node *currentNode, int levelTree, int newKey )
 
         if ( currentNode->child[ pos ]->counter == 2 * levelTree - 1 ){
 
-            splitNode( currentNode, levelTree, pos );
+            if ( currentNode->child[ pos ]->leaf )
+                splitNode( currentNode, levelTree, pos );
+            else
+                splitNode( currentNode, levelTree, ( 2 * levelTree - 1 ) / 2  );
 
+            //printf("%d", currentNode->key[pos] );
             if ( newKey > currentNode->key[ pos ] ) {
 
                 pos += 1;
             }
         }
 
-        insertKeyIntoNode( currentNode->child[ pos ], levelTree, newKey );
+        insertKeyIntoNode( currentNode->child[ pos ], levelTree, newKey, newStr );
+        if ( currentNode->child[ pos ]->counter > 2 * levelTree - 1 )
+            splitNode( currentNode, levelTree, pos );
+
     }
 }
 
@@ -173,6 +183,7 @@ void splitNode ( Node *currentNode, int levelTree, int position )
     for ( int j = 0; j < levelTree - 1; j++ ){
 
         secondPart->key[ j ] = firstPart->key[ j + levelTree ];
+        strCopy( firstPart->str[ j + levelTree ], secondPart->str[ j ] );
     }
 
     if ( !secondPart->leaf ){
@@ -183,7 +194,8 @@ void splitNode ( Node *currentNode, int levelTree, int position )
         }
     }
 
-    firstPart->counter = levelTree - 1;
+    firstPart->counter = levelTree;
+    firstPart->child[ levelTree ] = secondPart;
 
     for ( int j = currentNode->counter + 1; j >= position + 1; j-- ){
 
@@ -195,9 +207,12 @@ void splitNode ( Node *currentNode, int levelTree, int position )
     for ( int j = currentNode->counter; j >= position; j-- ){
 
         currentNode->key[ j + 1 ] = currentNode->key[ j ];
+
     }
 
-    currentNode->key[ position ] = firstPart->key[ levelTree - 1 ];
+    currentNode->key[ position ] = firstPart->key[ levelTree ];
+    strDestroy( currentNode->str[ position ] );
+    currentNode->str[ position ] = strCreate();
 
     currentNode->counter += 1;
 }
@@ -247,12 +262,13 @@ bool mergeNodes ( Node *currentNode, int levelTree, int positionFirst, int posit
         return false;
     }
 
-    firstNode->key[ firstNode->counter ] = currentNode->key[ positionFirst ]; //спускаем предка
-    firstNode->counter += 1;
+    //firstNode->key[ firstNode->counter ] = currentNode->key[ positionFirst ]; //спускаем предка
+    //firstNode->counter += 1;
 
     for ( int i = 0; i < secondNode->counter; i++ ){
 
         firstNode->key[ i + firstNode->counter ] = secondNode->key[ i ];
+        strCopy( secondNode->str[ i ], firstNode->str[ i + firstNode->counter ] );
     }
     for ( int i = 0; i <= secondNode->counter; i++ ){
 
@@ -261,7 +277,7 @@ bool mergeNodes ( Node *currentNode, int levelTree, int positionFirst, int posit
 
     firstNode->counter += secondNode->counter;
 
-    destroyNode( secondNode );
+    destroyNode( secondNode, levelTree );
 
 
     if ( currentNode->counter != 1 ){
@@ -286,6 +302,7 @@ bool mergeNodes ( Node *currentNode, int levelTree, int positionFirst, int posit
         for ( int i = 0; i < currentNode->counter; i++ ) {
 
             currentNode->key[ i ] = firstNode->key[ i ];
+            strCopy( firstNode->str[ i ], currentNode->str[ i ] );
         }
 
         for ( int i = 0; i <= currentNode->counter; i++ ) {
@@ -293,7 +310,7 @@ bool mergeNodes ( Node *currentNode, int levelTree, int positionFirst, int posit
             currentNode->child[ i ] = firstNode->child[ i ];
         }
 
-        destroyNode( firstNode );
+        destroyNode( firstNode, levelTree );
     }
 
     return true;
@@ -325,6 +342,7 @@ ParentWithChild findKeyInNode ( Node *childNode, Node *parentNode, int findKey, 
      * positionNode - позиция ребенка в родителе
      */
 
+    //printf("231231\n");
     int positionKey = positionKeyInNode( childNode, findKey );
 
     if ( positionKey == -1 && childNode->leaf ){
@@ -348,13 +366,20 @@ ParentWithChild findKeyInNode ( Node *childNode, Node *parentNode, int findKey, 
 
         return temp;
     }
+    for (int i = 1; i < childNode->counter; i++) {
 
-    for ( int i = 1; i <= childNode->counter; i++ ){
+        if (childNode->key[i - 1] > findKey) {
 
-        if ( childNode->key[ i - 1 ] > findKey ){
-
-            return findKeyInNode( childNode->child[ i - 1 ], childNode, findKey, i - 1 );
+            return findKeyInNode(childNode->child[i - 1], childNode, findKey, i - 1);
         }
+    }
+
+    if ( childNode == parentNode ) {
+        if (childNode->key[childNode->counter - 1] > findKey) {
+
+            return findKeyInNode(childNode->child[childNode->counter - 1], childNode, findKey, childNode->counter - 1);
+        }
+
     }
 
     return findKeyInNode( childNode->child[ childNode->counter ], childNode, findKey, childNode->counter );
@@ -367,6 +392,9 @@ int positionKeyInNode ( Node *currentNode, int findKey )
      * В случае удачи возвращает индекс ключа в узле
      * В случае не удачи возвращается -1
      */
+
+    if ( !currentNode->leaf )
+        return -1;
 
     for ( int i = 0; i < currentNode->counter; i++ ) {
 
@@ -696,10 +724,12 @@ void replaceKeyToLeft( Node *parentNode, Node *leftChildNode, Node *rightChildNo
 
     leftChildNode->counter += 1;
 
-    leftChildNode->key[ leftChildNode->counter - 1 ] = parentNode->key[ position ];
-    leftChildNode->child[ leftChildNode->counter ]   =  rightChildNode->child[ 0 ];
+    leftChildNode->key[ leftChildNode->counter - 1 ] = rightChildNode->key[ 0 ];
+    strCopy( rightChildNode->str[0], leftChildNode->str[ leftChildNode->counter - 1 ] );
+    leftChildNode->child[ leftChildNode->counter - 1 ]   =  rightChildNode->child[ 0 ];
+    leftChildNode->child[ leftChildNode->counter ] = rightChildNode;
 
-    parentNode->key[ position ] = rightChildNode->key[ 0 ];
+    parentNode->key[ position ] = rightChildNode->key[ 1 ];
 
     for ( int i = 0; i <= rightChildNode->counter; i++ ){
 
@@ -709,6 +739,7 @@ void replaceKeyToLeft( Node *parentNode, Node *leftChildNode, Node *rightChildNo
     for ( int i = 0; i < rightChildNode->counter; i++ ){
 
         rightChildNode->key[ i ] = rightChildNode->key[ i + 1 ];
+        strCopy( rightChildNode->str[ i + 1 ], rightChildNode->str[ i ] );
     }
 
     rightChildNode->counter -= 1;
@@ -738,12 +769,14 @@ void replaceKeyToRight( Node *parentNode, Node *leftChildNode, Node *rightChildN
 
     rightChildNode->counter += 1;
 
-    rightChildNode->key[ 0 ]   = parentNode->key[ position ];
-    rightChildNode->child[ 0 ] = leftChildNode->child[ leftChildNode->counter ];
+    rightChildNode->key[ 0 ]   = leftChildNode->key[ leftChildNode->counter - 1 ];
+    rightChildNode->child[ 0 ] = leftChildNode->child[ leftChildNode->counter - 1 ];
+    rightChildNode->str[ 0 ]   = rightChildNode->str[ leftChildNode->counter - 1 ];
 
-    parentNode->key[ position ] = leftChildNode->key[ leftChildNode->counter - 1 ];
+    parentNode->key[ position ] = rightChildNode->key[ 0 ];
 
     leftChildNode->counter -= 1;
+    leftChildNode->child[ leftChildNode->counter ] = rightChildNode;
 }
 
 bool deleteKeyFromLeaf ( Node *nodeIsLeaf, int levelTree, int positionKey )
@@ -764,6 +797,7 @@ bool deleteKeyFromLeaf ( Node *nodeIsLeaf, int levelTree, int positionKey )
     for ( int i = positionKey; i < nodeIsLeaf->counter - 1; i++){
 
         nodeIsLeaf->key[ i ] = nodeIsLeaf->key[ i + 1 ];
+        strCopy( nodeIsLeaf->str[ i + 1 ], nodeIsLeaf->str[ i ] );
     }
 
     for ( int i = positionKey; i < nodeIsLeaf->counter; i++){
@@ -776,44 +810,56 @@ bool deleteKeyFromLeaf ( Node *nodeIsLeaf, int levelTree, int positionKey )
     return true;
 }
 
-void wr ( Node *temp )
+void wr ( Node *temp, Tree *tr )
 {
     printf("%s %d\n", "Start Node:", temp->counter);
     for ( int i = 0; i < temp->counter; i++ ){
-        printf("%d ", temp->key[i] );
+        printf("%d ", temp->key[i]);
+        strPrint( temp->str[i] );
     }
     printf("\n");
-    for ( int i = 0; i <= temp->counter; i++ ){
-        if ( !temp->leaf )
-            wr ( temp->child[i] );
-    }
-    if (temp->leaf){
-        printf("%s\n\n", "End Leaf.");
-    }
-    else{
+    if ( temp == tr->root ){
+        for ( int i = 0; i <= temp->counter; i++ ){
+            if ( !temp->leaf )
+                wr ( temp->child[i], tr );
+        }
         printf("%s\n\n", "End Node.");
+    }else {
+        if (temp->leaf) {
+            for (int i = 0; i < temp->counter; i++) {
+                if (!temp->leaf)
+                    wr(temp->child[i], tr);
+            }
+            printf("%s\n\n", "End Leaf.");
+        } else {
+            for (int i = 0; i < temp->counter; i++) {
+                if (!temp->leaf)
+                    wr(temp->child[i], tr);
+            }
+            printf("%s\n\n", "End Node.");
+        }
     }
-
 }
 
-void destroyNode ( Node *currentNode )
+void destroyNode ( Node *currentNode, int levelTree )
 {
     if ( currentNode != NULL ) {
       //  printf("%s\n", "kek1");
         free(currentNode->child);
         free(currentNode->key);
+        //strMasDestroy( currentNode->str, levelTree );
         free(currentNode);
     }
     printf("%s\n", "end");
 }
 
-void destroyTree ( Node *deleteNode) {
+void destroyTree ( Node *deleteNode, int levelTree ) {
     /*
      * Рекурсивное удаление дерева
      */
     if (deleteNode->leaf) {
 
-        destroyNode(deleteNode);
+        destroyNode(deleteNode, levelTree );
     }
     else {
 
@@ -822,7 +868,7 @@ void destroyTree ( Node *deleteNode) {
 
         for (int i = deleteNode->counter; i >= 0; i-- ) {
             printf("%d %d\n", deleteNode->counter, i);
-            destroyTree(deleteNode->child[i]);
+            destroyTree(deleteNode->child[i], levelTree );
         }
 
         free(deleteNode);
@@ -834,5 +880,5 @@ void destroyTree ( Node *deleteNode) {
 
 void write( Tree *temp )
 {
-    wr( temp->root );
+    wr( temp->root, temp );
 }
