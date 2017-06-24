@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "B+tree.h"
+#include "B+tree/B+tree.h"
 #include <stdlib.h>
 
 int main ( int argc, char *argv[] )
